@@ -1,0 +1,51 @@
+#ONBUILD is used to define an instruction that will not execute when the current image is built. Instead, it executes automatically when another image uses this image as its base image.
+
+## 1) Base Image :- 
+
+pravin@docker-01:~/docker$ cat Dockerfile 
+FROM ubuntu:24.04
+ONBUILD COPY message.txt /message.txt
+
+pravin@docker-01:~/docker$ sudo docker build -t my-base-image .
+[+] Building 0.5s (5/5) FINISHED                                                                                           docker:default
+
+
+pravin@docker-01:~/docker2$ cat message.txt 
+Hello from child image
+pravin@docker-01:~/docker2$ cat Dockerfile 
+FROM my-base-image
+CMD ["cat", "/message.txt"]
+pravin@docker-01:~/docker2$ sudo docker build -t secondimage .
+[+] Building 0.2s (7/7) FINISHED                                                                                           docker:default
+ => [internal] load build definition from Dockerfile                                                                                 0.0s
+ => => transferring dockerfile: 85B                                                                                                  0.0s
+ => [internal] load metadata for docker.io/library/my-base-image:latest                                                              0.2s
+ => [internal] load .dockerignore                                                                                                    0.0s
+ => => transferring context: 2B                                                                                                      0.0s
+ => [internal] load build context                                                                                                    0.0s
+ => => transferring context: 61B                                                                                                     0.0s
+ => CACHED [1/1] FROM docker.io/library/my-base-image:latest@sha256:6df4971f05ba6ad9038d1b4383f78968028f89ee9e3f6605843605400d7983f  0.0s
+ => => resolve docker.io/library/my-base-image:latest@sha256:6df4971f05ba6ad9038d1b4383f78968028f89ee9e3f6605843605400d7983fa        0.0s
+ => [2/2] ONBUILD COPY message.txt /message.txt                                                                                      0.0s
+ => exporting to image                                                                                                               0.0s
+ => => exporting layers                                                                                                              0.0s
+ => => exporting manifest sha256:96b8c64bb2522e2f0fd87df6daa9afb66f85b10b30e2cb03aac4b0841ac799a7                                    0.0s
+ => => exporting config sha256:f01741b3b4057cf98618023c024fb1f0a85bc3f3862e43211bfefe544f686e46                                      0.0s
+ => => exporting attestation manifest sha256:faf1632539f49ee86e25b8acefc1056f63decfa1c25c484efc5714acaccb30af                        0.0s
+ => => exporting manifest list sha256:21d1132859f961ed34c0b82fb7b26a403dc4863a60e61307aae3728e5e3440ff                               0.0s
+ => => naming to docker.io/library/secondimage:latest                                                                                0.0s
+ => => unpacking to docker.io/library/secondimage:latest                                                                            
+pravin@docker-01:~$ docker images
+                                                                                                                      i Info →   U  In Use
+IMAGE                     ID             DISK USAGE   CONTENT SIZE   EXTRA
+my-base-image:latest      6df4971f05ba        117MB         29.8MB        
+secondimage:latest        21d1132859f9        117MB         29.8MB        
+pravin@docker-01:~$ sudo docker run -it --rm secondimage /bin/bash 
+root@5652492709ae:/# ls
+bin  boot  dev  etc  home  lib  lib64  media  message.txt  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@5652492709ae:/# cat message.txt 
+Hello from child image
+
+
+
+ 
